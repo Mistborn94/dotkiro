@@ -15,7 +15,7 @@ dotkiro fixes that. One Git repo holds your conventions, one command syncs them 
 ## Quick start
 
 ```bash
-git clone https://github.com/aurelienaws/dotkiro.git
+git clone https://github.com/kirodotdev-labs/dotkiro.git
 cd dotkiro
 npm link
 ```

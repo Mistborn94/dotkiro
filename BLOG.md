@@ -87,7 +87,7 @@ No Slack messages asking people to update their files. No wiki pages that go sta
 Clone the repo and link it globally so anyone on the team can use it:
 
 ```bash
-git clone https://github.com/aurelienaws/dotkiro.git
+git clone https://github.com/kirodotdev-labs/dotkiro.git
 cd dotkiro
 npm link
 ```
