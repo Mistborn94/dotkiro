@@ -1,0 +1,35 @@
+{
+  "name": "dotkiro",
+  "version": "0.1.0",
+  "description": "CLI to sync Kiro steering files and skills from a central repo",
+  "type": "module",
+  "bin": {
+    "dotkiro": "./bin/dotkiro.js"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aurelienaws/dotkiro.git"
+  },
+  "scripts": {
+    "test": "vitest --run"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "kiro",
+    "steering",
+    "skills",
+    "cli",
+    "dotkiro"
+  ],
+  "devDependencies": {
+    "fast-check": "^4.6.0",
+    "vitest": "^4.1.0"
+  }
+}

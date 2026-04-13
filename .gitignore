@@ -1,0 +1,9 @@
+node_modules/
+.dotkiro-manifest.json
+.kiro/steering/
+.kiro/skills/
+dotkiro.md
+*.tgz
+.vscode/
+.kiro/
+**/.DS_Store
