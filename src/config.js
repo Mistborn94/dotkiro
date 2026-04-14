@@ -9,6 +9,8 @@ const DEFAULTS = {
   branch: "main",
 };
 
+const VALID_TYPE = /^[a-z0-9]([a-z0-9._-]*[a-z0-9])?$/i;
+
 export function buildPaths(types) {
   const paths = [
     { src: "steering", dest: ".kiro/steering", label: "Steering (shared)", type: "shared" },
@@ -17,6 +19,9 @@ export function buildPaths(types) {
 
   for (const type of types) {
     if (type && type !== "default") {
+      if (!VALID_TYPE.test(type)) {
+        throw new Error(`Invalid type name: "${type}". Use only letters, numbers, hyphens, dots, and underscores.`);
+      }
       paths.push(
         { src: `${type}/steering`, dest: `.kiro/steering/${type}`, label: `Steering (${type})`, type },
         { src: `${type}/skills`, dest: ".kiro/skills", label: `Skills (${type})`, type },

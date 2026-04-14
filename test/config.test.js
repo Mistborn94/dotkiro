@@ -1,3 +1,6 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import fc from "fast-check";
 import { mkdir, writeFile, readFile, rm } from "node:fs/promises";
@@ -48,12 +51,26 @@ describe("buildPaths", () => {
     expect(paths.every((p) => p.type === "shared" || p.type === "python")).toBe(true);
   });
 
+  it("rejects type names with path traversal characters", () => {
+    expect(() => buildPaths(["../../etc"])).toThrow("Invalid type name");
+    expect(() => buildPaths(["foo/bar"])).toThrow("Invalid type name");
+    expect(() => buildPaths(["hello world"])).toThrow("Invalid type name");
+    expect(() => buildPaths(["."])).toThrow("Invalid type name");
+  });
+
+  it("accepts valid type names", () => {
+    expect(() => buildPaths(["python"])).not.toThrow();
+    expect(() => buildPaths(["react-native"])).not.toThrow();
+    expect(() => buildPaths(["node.js"])).not.toThrow();
+    expect(() => buildPaths(["v2"])).not.toThrow();
+  });
+
   // ─── PBT ────────────────────────────────────────────────────────────────
 
   it("always includes exactly 2 shared paths", () => {
     fc.assert(
       fc.property(
-        fc.array(fc.string({ minLength: 1 }).filter((s) => s !== "default"), { maxLength: 10 }),
+        fc.array(fc.stringMatching(/^[a-z][a-z0-9-]{0,9}[a-z0-9]$/).filter((s) => s !== "default"), { maxLength: 10 }),
         (types) => {
           const paths = buildPaths(types);
           const shared = paths.filter((p) => p.type === "shared");
@@ -66,7 +83,7 @@ describe("buildPaths", () => {
   it("adds exactly 2 paths per non-empty, non-default type", () => {
     fc.assert(
       fc.property(
-        fc.array(fc.string({ minLength: 1 }).filter((s) => s !== "default"), { maxLength: 10 }),
+        fc.array(fc.stringMatching(/^[a-z][a-z0-9-]{0,9}[a-z0-9]$/).filter((s) => s !== "default"), { maxLength: 10 }),
         (types) => {
           const paths = buildPaths(types);
           // 2 shared + 2 per valid type
@@ -80,7 +97,7 @@ describe("buildPaths", () => {
     fc.assert(
       fc.property(
         fc.array(
-          fc.stringMatching(/^[a-z][a-z0-9-]{0,19}$/).filter((s) => s !== "default"),
+          fc.stringMatching(/^[a-z][a-z0-9-]{0,18}[a-z0-9]$/).filter((s) => s !== "default"),
           { minLength: 1, maxLength: 5 }
         ),
         (types) => {
@@ -99,7 +116,7 @@ describe("buildPaths", () => {
     fc.assert(
       fc.property(
         fc.array(
-          fc.stringMatching(/^[a-z][a-z0-9-]{0,19}$/).filter((s) => s !== "default"),
+          fc.stringMatching(/^[a-z][a-z0-9-]{0,18}[a-z0-9]$/).filter((s) => s !== "default"),
           { minLength: 1, maxLength: 5 }
         ),
         (types) => {
