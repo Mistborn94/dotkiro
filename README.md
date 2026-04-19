@@ -12,6 +12,11 @@ The problem gets worse as you scale from a team to an organisation. Updating a c
 
 dotkiro fixes that. One Git repo holds your conventions, one command syncs them everywhere.
 
+## Requirements
+
+- Node.js >= 18
+- Git on PATH
+
 ## Quick start
 
 ```bash
@@ -36,7 +41,26 @@ dotkiro init
 
 This pulls all `.md` files from the `steering/` and `skills/` directories at the root of your conventions repo into `.kiro/steering/` and `.kiro/skills/`.
 
-To layer type-specific conventions on top (e.g. for a Python project), add a type. Your conventions repo just needs a `python/steering/` and/or `python/skills/` folder:
+Your conventions repo should follow this layout:
+
+```
+your-conventions-repo/
+  steering/           ← shared, always synced
+    *.md
+  skills/             ← shared, always synced
+    <skill-name>/
+      SKILL.md
+  <type>/             ← type-specific (e.g. python, cdk, platform-team)
+    steering/
+      *.md
+    skills/
+      <skill-name>/
+        SKILL.md
+```
+
+Types can represent anything: languages, frameworks, teams, or environments. A type is just a named folder in your conventions repo.
+
+To layer type-specific conventions on top, add a type:
 
 ```bash
 dotkiro add python
@@ -228,11 +252,6 @@ CLI flags override config. Config is resolved in layers: defaults -> user config
 ```bash
 dotkiro init python --repo=https://github.com/your-org/repo.git --branch=v2
 ```
-
-## Requirements
-
-- Node.js >= 18
-- Git on PATH
 
 ## License
 
