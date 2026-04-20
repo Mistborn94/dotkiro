@@ -4,6 +4,8 @@ Sync your team's [Kiro](https://kiro.dev) steering files and skills from a centr
 
 For a deeper walkthrough of the problem and the thinking behind dotkiro, read the [blog post](BLOG.md).
 
+![dotkiro demo](demo.svg)
+
 ## Why
 
 Steering files and skills shape how Kiro writes code — your style preferences, security rules, testing conventions, and more. When these are consistent across projects, every developer on the team gets the same AI behavior. When they're not, you get drift: slightly different rules in every repo, outdated copies, new projects starting from scratch.
@@ -179,6 +181,8 @@ No Slack messages asking people to update their files. No wiki pages that go sta
 
 ## Repo structure
 
+For a working example, see [kiro-centralised-config](https://github.com/aurelienaws/kiro-centralised-config).
+
 Your central repo should look like this:
 
 ```
@@ -252,6 +256,20 @@ CLI flags override config. Config is resolved in layers: defaults -> user config
 ```bash
 dotkiro init python --repo=https://github.com/your-org/repo.git --branch=v2
 ```
+
+## Troubleshooting
+
+**"No repo configured"** — You haven't set a repo URL. Add it to `.dotkirorc`, pass `--repo`, or set it in `~/.config/dotkiro/config.json`.
+
+**"No dotkiro manifest found. Run `dotkiro init` first."** — You ran `dotkiro update` or `dotkiro status` before initializing. Run `dotkiro init` to create the manifest.
+
+**"No .md files found in the configured paths"** — The remote repo exists but has no `.md` files in the expected `steering/` or `skills/` directories. Check your [repo structure](#repo-structure).
+
+**"No .md files found for \<type\>"** — The type folder doesn't exist in the remote repo, or it has no `steering/` or `skills/` subdirectories with `.md` files.
+
+**"Invalid type name"** — Type names can only contain letters, numbers, hyphens, dots, and underscores.
+
+**Git clone fails** — The repo URL is wrong, the branch doesn't exist, or you don't have access. Check your URL, branch name, and credentials.
 
 ## License
 
