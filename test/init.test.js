@@ -136,6 +136,18 @@ describe("copyDir", () => {
     expect(result).toEqual({ added: 0, updated: 0, unchanged: 0, files: [] });
   });
 
+  it("copies .kiro.hook files when ext is specified", async () => {
+    const src = join(testDir, "src");
+    const dest = join(testDir, "dest");
+    await writeTestFile(src, "lint.kiro.hook", '{"name":"Lint"}');
+    await writeTestFile(src, "readme.md", "# Readme");
+
+    const result = await copyDir(src, dest, "test", ".kiro.hook");
+    expect(result.added).toBe(1);
+    expect(result.files).toHaveLength(1);
+    expect(result.files[0]).toContain("lint.kiro.hook");
+  });
+
   // ─── PBT ──────────────────────────────────────────────────────────────
 
   it("added + updated + unchanged always equals files.length", async () => {

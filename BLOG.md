@@ -1,12 +1,12 @@
 # Keep Your Team's AI Coding Conventions in Sync with Kiro
 
-When a team adopts an AI coding assistant like [Kiro](https://kiro.dev), something interesting happens. Developers start writing steering files — markdown documents that tell the AI how to write code, what patterns to follow, and what to avoid. They create skills — reusable instructions for common tasks like code reviews or deployment checks.
+When a team adopts an AI coding assistant like [Kiro](https://kiro.dev), something interesting happens. Developers start writing steering files — markdown documents that tell the AI how to write code, what patterns to follow, how to behave, and what to avoid. They create skills — reusable instructions for common tasks like code reviews or deployment checks. They set up agent hooks — event-driven automations that run linters on save, check for security issues before a write, or trigger tests after a task completes.
 
 This works great for one person. But across a team of ten, twenty, or fifty developers? You end up with a dozen slightly different versions of the same rules, scattered across projects, copy-pasted from Slack, and slowly drifting apart.
 
 ## The problem
 
-Kiro reads steering files from `.kiro/steering/` and skills from `.kiro/skills/` inside your project. These files shape how the AI behaves — your code style preferences, testing conventions, security rules, and more.
+Kiro reads steering files from `.kiro/steering/`, skills from `.kiro/skills/`, and agent hooks from `.kiro/hooks/` inside your project. These files shape how the AI behaves — your code style preferences, testing conventions, security rules, automated workflows, and more.
 
 Without a system in place, teams hit a few common issues:
 
@@ -23,6 +23,7 @@ Store your team's conventions in a single Git repository. Build a small CLI that
 graph LR
     A[Central Git Repo] -->|dotkiro init| B[.kiro/steering/]
     A -->|dotkiro init| C[.kiro/skills/]
+    A -->|dotkiro init| D[.kiro/hooks/]
 ```
 
 That's the whole pattern. A Git repo becomes your single source of truth. A CLI becomes the distribution mechanism. npm makes it frictionless.
@@ -41,12 +42,18 @@ my-conventions/
   skills/             ← Shared skills, always pulled
     code-review/
       SKILL.md
+  hooks/              ← Shared hooks, always pulled
+    lint-on-save.kiro.hook
   python/             ← Extra rules for Python projects
     steering/
       python-rules.md
+    hooks/
+      run-pytest.kiro.hook
   cdk/                ← Extra rules for CDK projects
     steering/
       construct-patterns.md
+    hooks/
+      cdk-nag-check.kiro.hook
 ```
 
 A project can use multiple types. `dotkiro init python cdk` pulls shared, Python, and CDK conventions. Need to add CDK later? `dotkiro add cdk`. Want to drop it? `dotkiro remove cdk`. The tool tracks what it synced and only touches its own files — anything you created locally stays untouched.
@@ -62,19 +69,19 @@ sequenceDiagram
 
     Dev->>CLI: dotkiro init python
     CLI->>Repo: Shallow clone
-    Repo-->>CLI: Steering files + skills
+    Repo-->>CLI: Steering files + skills + hooks
     CLI->>Project: Sync shared + Python conventions
-    CLI-->>Dev: Done — 6 added
+    CLI-->>Dev: Done — 8 added
 ```
 
 Day to day, it looks like this:
 
 - Starting a new project? `dotkiro init python`
 - Want to keep the manifest out of source control? Add `--gitignore` and dotkiro will update your `.gitignore` for you. The manifest tracks your local sync state — it's generated, developer-specific, and shouldn't be committed since the remote repo is the source of truth.
-- Team updated a convention? `dotkiro update` — it tells you what changed
+- Team updated a convention or hook? `dotkiro update` — it tells you what changed
 - Need to check what's synced? `dotkiro status`
 - Done with a type? `dotkiro remove cdk`
-- Want to add your own project-specific rules? Just create new `.md` files in `.kiro/steering/` — dotkiro only manages files tracked in the manifest, so your local files are never touched, even on `remove`
+- Want to add your own project-specific rules or hooks? Just create files in `.kiro/steering/` or `.kiro/hooks/` — dotkiro only manages files tracked in the manifest, so your local files are never touched, even on `remove`
 
 ## Updating conventions is a pull request
 
@@ -107,7 +114,6 @@ The CLI keeps this file in sync: `dotkiro add` appends types, `dotkiro remove` s
 
 This pattern is intentionally simple, but there's room to grow:
 
-- Sync agent hooks from your conventions repo (Kiro supports hooks in `.kiro/hooks/`)
 - Run `dotkiro init` in CI to keep conventions fresh automatically
 
 ## Wrapping up
