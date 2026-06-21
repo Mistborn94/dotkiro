@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0
+
+- Add agent hooks support — sync `.kiro.hook` files from `hooks/` directories in the conventions repo
+- Shared hooks land in `.kiro/hooks/`, type-specific hooks in `.kiro/hooks/<type>/`
+- Hooks are tracked in the manifest and managed by `update` and `remove` like any other file
+
 ## 0.1.0
 
 Initial release.

@@ -13,8 +13,9 @@ const VALID_TYPE = /^[a-z0-9]([a-z0-9._-]*[a-z0-9])?$/i;
 
 export function buildPaths(types) {
   const paths = [
-    { src: "steering", dest: ".kiro/steering", label: "Steering (shared)", type: "shared" },
-    { src: "skills", dest: ".kiro/skills", label: "Skills (shared)", type: "shared" },
+    { src: "steering", dest: ".kiro/steering", label: "Steering (shared)", type: "shared", ext: ".md" },
+    { src: "skills", dest: ".kiro/skills", label: "Skills (shared)", type: "shared", ext: ".md" },
+    { src: "hooks", dest: ".kiro/hooks", label: "Hooks (shared)", type: "shared", ext: ".kiro.hook" },
   ];
 
   for (const type of types) {
@@ -23,8 +24,9 @@ export function buildPaths(types) {
         throw new Error(`Invalid type name: "${type}". Use only letters, numbers, hyphens, dots, and underscores.`);
       }
       paths.push(
-        { src: `${type}/steering`, dest: `.kiro/steering/${type}`, label: `Steering (${type})`, type },
-        { src: `${type}/skills`, dest: ".kiro/skills", label: `Skills (${type})`, type },
+        { src: `${type}/steering`, dest: `.kiro/steering/${type}`, label: `Steering (${type})`, type, ext: ".md" },
+        { src: `${type}/skills`, dest: ".kiro/skills", label: `Skills (${type})`, type, ext: ".md" },
+        { src: `${type}/hooks`, dest: `.kiro/hooks/${type}`, label: `Hooks (${type})`, type, ext: ".kiro.hook" },
       );
     }
   }

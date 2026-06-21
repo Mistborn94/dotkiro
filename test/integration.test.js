@@ -33,8 +33,10 @@ async function fileExists(p) {
  * Creates a local bare git repo populated with a conventions structure:
  *   steering/code-style.md
  *   skills/review/SKILL.md
+ *   hooks/lint-on-save.kiro.hook
  *   python/steering/python-rules.md
  *   python/skills/pytest/SKILL.md
+ *   python/hooks/run-pytest.kiro.hook
  *   cdk/steering/construct-patterns.md
  */
 async function setupFixtures() {
@@ -56,8 +58,10 @@ async function setupFixtures() {
     "steering/code-style.md": "# Code Style\nUse consistent formatting.",
     "steering/security.md": "# Security\nNo secrets in code.",
     "skills/review/SKILL.md": "# Code Review Skill",
+    "hooks/lint-on-save.kiro.hook": '{"name":"Lint on Save","version":"1.0.0","when":{"type":"fileEdited","patterns":["*.ts"]},"then":{"type":"runCommand","command":"npm run lint"}}',
     "python/steering/python-rules.md": "# Python Rules\nUse type hints.",
     "python/skills/pytest/SKILL.md": "# Pytest Skill",
+    "python/hooks/run-pytest.kiro.hook": '{"name":"Run Pytest","version":"1.0.0","when":{"type":"fileEdited","patterns":["*.py"]},"then":{"type":"runCommand","command":"pytest"}}',
     "cdk/steering/construct-patterns.md": "# CDK Patterns",
   };
 
@@ -104,7 +108,7 @@ describe("init (integration)", () => {
 
     const manifest = await readManifest(projectDir);
     expect(manifest).toHaveProperty("shared");
-    expect(manifest.shared).toHaveLength(3);
+    expect(manifest.shared).toHaveLength(4);
   });
 
   it("syncs shared + type-specific files", async () => {
@@ -404,5 +408,82 @@ describe(".dotkirorc manifest", () => {
 
     const manifest = await readManifest(projectDir);
     expect(Object.keys(manifest).sort()).toEqual(["cdk", "python", "shared"]);
+  });
+});
+
+// ─── hooks ──────────────────────────────────────────────────────────────────
+
+describe("hooks (integration)", () => {
+  it("syncs shared hooks on init", async () => {
+    const config = await loadConfig({ repo: bareRepo, branch: "main" }, []);
+    await init(config);
+
+    expect(await fileExists(join(projectDir, ".kiro/hooks/lint-on-save.kiro.hook"))).toBe(true);
+
+    const content = await readFile(join(projectDir, ".kiro/hooks/lint-on-save.kiro.hook"), "utf-8");
+    expect(content).toContain("Lint on Save");
+  });
+
+  it("syncs type-specific hooks into .kiro/hooks/<type>/", async () => {
+    const config = await loadConfig({ repo: bareRepo, branch: "main" }, ["python"]);
+    await init(config);
+
+    expect(await fileExists(join(projectDir, ".kiro/hooks/lint-on-save.kiro.hook"))).toBe(true);
+    expect(await fileExists(join(projectDir, ".kiro/hooks/python/run-pytest.kiro.hook"))).toBe(true);
+
+    const content = await readFile(join(projectDir, ".kiro/hooks/python/run-pytest.kiro.hook"), "utf-8");
+    expect(content).toContain("Run Pytest");
+  });
+
+  it("hooks are tracked in the manifest", async () => {
+    const config = await loadConfig({ repo: bareRepo, branch: "main" }, ["python"]);
+    await init(config);
+
+    const manifest = await readManifest(projectDir);
+    const sharedFiles = manifest.shared;
+    const pythonFiles = manifest.python;
+
+    expect(sharedFiles.some((f) => f.includes("lint-on-save.kiro.hook"))).toBe(true);
+    expect(pythonFiles.some((f) => f.includes("run-pytest.kiro.hook"))).toBe(true);
+  });
+
+  it("add syncs type-specific hooks without touching shared hooks", async () => {
+    const initConfig = await loadConfig({ repo: bareRepo, branch: "main" }, []);
+    await init(initConfig);
+
+    const sharedHookBefore = await readFile(join(projectDir, ".kiro/hooks/lint-on-save.kiro.hook"), "utf-8");
+
+    const addConfig = await loadConfig({ repo: bareRepo, branch: "main" }, ["python"]);
+    await add(addConfig);
+
+    // shared hook unchanged
+    const sharedHookAfter = await readFile(join(projectDir, ".kiro/hooks/lint-on-save.kiro.hook"), "utf-8");
+    expect(sharedHookAfter).toBe(sharedHookBefore);
+
+    // type hook added
+    expect(await fileExists(join(projectDir, ".kiro/hooks/python/run-pytest.kiro.hook"))).toBe(true);
+  });
+
+  it("remove cleans up type-specific hooks", async () => {
+    const config = await loadConfig({ repo: bareRepo, branch: "main" }, ["python"]);
+    await init(config);
+
+    expect(await fileExists(join(projectDir, ".kiro/hooks/python/run-pytest.kiro.hook"))).toBe(true);
+
+    await remove(["python"]);
+
+    expect(await fileExists(join(projectDir, ".kiro/hooks/python/run-pytest.kiro.hook"))).toBe(false);
+    // shared hook still there
+    expect(await fileExists(join(projectDir, ".kiro/hooks/lint-on-save.kiro.hook"))).toBe(true);
+  });
+
+  it("remove all cleans up all hooks", async () => {
+    const config = await loadConfig({ repo: bareRepo, branch: "main" }, ["python"]);
+    await init(config);
+
+    await remove([]);
+
+    expect(await fileExists(join(projectDir, ".kiro/hooks/lint-on-save.kiro.hook"))).toBe(false);
+    expect(await fileExists(join(projectDir, ".kiro/hooks/python/run-pytest.kiro.hook"))).toBe(false);
   });
 });

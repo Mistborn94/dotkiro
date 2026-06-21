@@ -1,6 +1,6 @@
 # dotkiro
 
-Sync your team's [Kiro](https://kiro.dev) steering files and skills from a central Git repo into any project.
+Sync your team's [Kiro](https://kiro.dev) steering files, skills, and agent hooks from a central Git repo into any project.
 
 For a deeper walkthrough of the problem and the thinking behind dotkiro, read the [blog post](BLOG.md).
 
@@ -8,7 +8,7 @@ For a deeper walkthrough of the problem and the thinking behind dotkiro, read th
 
 ## Why
 
-Steering files and skills shape how Kiro writes code — your style preferences, security rules, testing conventions, and more. When these are consistent across projects, every developer on the team gets the same AI behavior. When they're not, you get drift: slightly different rules in every repo, outdated copies, new projects starting from scratch.
+Steering files, skills, and agent hooks shape how Kiro writes code — your style preferences, security rules, testing conventions, automated workflows, and more. When these are consistent across projects, every developer on the team gets the same AI behavior. When they're not, you get drift: slightly different rules in every repo, outdated copies, new projects starting from scratch.
 
 The problem gets worse as you scale from a team to an organisation. Updating a convention means editing files across every active project. New team members don't know which version to use. Different teams end up with their own variations. There's no single source of truth for "how we use Kiro."
 
@@ -41,7 +41,7 @@ And sync:
 dotkiro init
 ```
 
-This pulls all `.md` files from the `steering/` and `skills/` directories at the root of your conventions repo into `.kiro/steering/` and `.kiro/skills/`.
+This pulls all `.md` files from the `steering/` and `skills/` directories, and all `.kiro.hook` files from the `hooks/` directory at the root of your conventions repo into `.kiro/steering/`, `.kiro/skills/`, and `.kiro/hooks/`.
 
 Your conventions repo should follow this layout:
 
@@ -52,12 +52,16 @@ your-conventions-repo/
   skills/             ← shared, always synced
     <skill-name>/
       SKILL.md
+  hooks/              ← shared, always synced
+    *.kiro.hook
   <type>/             ← type-specific (e.g. python, cdk, platform-team)
     steering/
       *.md
     skills/
       <skill-name>/
         SKILL.md
+    hooks/
+      *.kiro.hook
 ```
 
 Types can represent anything: languages, frameworks, teams, or environments. A type is just a named folder in your conventions repo.
@@ -68,15 +72,15 @@ To layer type-specific conventions on top, add a type:
 dotkiro add python
 ```
 
-This fetches files from `python/steering/` and `python/skills/` in the remote repo without re-syncing the shared ones. See [Repo structure](#repo-structure) for the full layout.
+This fetches files from `python/steering/`, `python/skills/`, and `python/hooks/` in the remote repo without re-syncing the shared ones. See [Repo structure](#repo-structure) for the full layout.
 
 ## Commands
 
 ### `dotkiro init [types...]`
 
-Fetches steering files and skills from the configured remote repo and copies them into `.kiro/steering/` and `.kiro/skills/`.
+Fetches steering files, skills, and hooks from the configured remote repo and copies them into `.kiro/steering/`, `.kiro/skills/`, and `.kiro/hooks/`.
 
-- With no types and no `types` in `.dotkirorc`, syncs only the shared conventions (files at the repo root's `steering/` and `skills/` directories).
+- With no types and no `types` in `.dotkirorc`, syncs only the shared conventions (files at the repo root's `steering/`, `skills/`, and `hooks/` directories).
 - With no CLI types but `types` declared in `.dotkirorc`, syncs shared plus those declared types.
 - With CLI types (e.g. `dotkiro init python cdk`), syncs shared conventions plus the specified types and saves them to `.dotkirorc`.
 - Creates a manifest at `.dotkiro-manifest.json` that tracks every file it placed, grouped by type.
@@ -155,9 +159,10 @@ dotkiro status
 graph LR
     A[Central Git Repo] -->|dotkiro init| B[.kiro/steering/]
     A -->|dotkiro init| C[.kiro/skills/]
+    A -->|dotkiro init| D[.kiro/hooks/]
 ```
 
-`dotkiro init` shallow-clones your configured repo and copies `.md` files into `.kiro/steering/` and `.kiro/skills/`.
+`dotkiro init` shallow-clones your configured repo and copies `.md` files into `.kiro/steering/` and `.kiro/skills/`, and `.kiro.hook` files into `.kiro/hooks/`.
 
 Types let you layer conventions. Shared files are always synced, and each type adds its own on top.
 
@@ -169,7 +174,7 @@ dotkiro creates a `.dotkiro-manifest.json` file in your project root. This is a 
 - Which files to delete when you run `dotkiro remove`
 - Which files belong to which type
 
-Files you create manually in `.kiro/steering/` or `.kiro/skills/` are never in the manifest, so dotkiro will never touch them. Only files that came from the central repo are tracked and managed.
+Files you create manually in `.kiro/steering/`, `.kiro/skills/`, or `.kiro/hooks/` are never in the manifest, so dotkiro will never touch them. Only files that came from the central repo are tracked and managed.
 
 The manifest reflects your local sync state and shouldn't be committed — different developers may have different types active. Use `dotkiro init --gitignore` to exclude it automatically.
 
@@ -193,12 +198,16 @@ my-repo/
   skills/                      # Shared — always pulled
     code-review/
       SKILL.md
+  hooks/                       # Shared — always pulled
+    lint-on-save.kiro.hook
   python/                      # Type-specific
     steering/
       python-rules.md
     skills/
       pytest-helper/
         SKILL.md
+    hooks/
+      run-pytest.kiro.hook
 ```
 
 ### Where files end up
@@ -217,13 +226,17 @@ Running `dotkiro init python` produces:
       SKILL.md                 ← from skills/
     pytest-helper/
       SKILL.md                 ← from python/skills/
+  hooks/
+    lint-on-save.kiro.hook     ← from hooks/
+    python/
+      run-pytest.kiro.hook     ← from python/hooks/
 ```
 
-Steering supports subfolders in Kiro, so type-specific steering goes into `.kiro/steering/<type>/`. Skills only work one level deep, so they're flattened into `.kiro/skills/` regardless of source.
+Steering supports subfolders in Kiro, so type-specific steering goes into `.kiro/steering/<type>/`. Skills only work one level deep, so they're flattened into `.kiro/skills/` regardless of source. Hooks support nesting, so type-specific hooks go into `.kiro/hooks/<type>/`.
 
 ### Local files are safe
 
-Files you create locally in `.kiro/steering/` or `.kiro/skills/` are never touched by dotkiro. Only files tracked in the manifest are managed.
+Files you create locally in `.kiro/steering/`, `.kiro/skills/`, or `.kiro/hooks/` are never touched by dotkiro. Only files tracked in the manifest are managed.
 
 ## Configuration
 
@@ -263,9 +276,9 @@ dotkiro init python --repo=https://github.com/your-org/repo.git --branch=v2
 
 **"No dotkiro manifest found. Run `dotkiro init` first."** — You ran `dotkiro update` or `dotkiro status` before initializing. Run `dotkiro init` to create the manifest.
 
-**"No .md files found in the configured paths"** — The remote repo exists but has no `.md` files in the expected `steering/` or `skills/` directories. Check your [repo structure](#repo-structure).
+**"No .md files found in the configured paths"** — The remote repo exists but has no `.md` files in the expected `steering/` or `skills/` directories, and no `.kiro.hook` files in the expected `hooks/` directory. Check your [repo structure](#repo-structure).
 
-**"No .md files found for \<type\>"** — The type folder doesn't exist in the remote repo, or it has no `steering/` or `skills/` subdirectories with `.md` files.
+**"No .md files found for \<type\>"** — The type folder doesn't exist in the remote repo, or it has no `steering/`, `skills/`, or `hooks/` subdirectories with matching files.
 
 **"Invalid type name"** — Type names can only contain letters, numbers, hyphens, dots, and underscores.
 

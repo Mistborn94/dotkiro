@@ -50,10 +50,10 @@ export async function add(config) {
     // only sync the type-specific paths, not shared
     const typePaths = paths.filter((p) => p.type !== "shared");
 
-    for (const { src, dest, label, type } of typePaths) {
+    for (const { src, dest, label, type, ext } of typePaths) {
       const srcDir = join(tmpDir, src);
       const destDir = join(cwd, dest);
-      const { added, updated, unchanged, files } = await copyDir(srcDir, destDir, label);
+      const { added, updated, unchanged, files } = await copyDir(srcDir, destDir, label, ext);
       totalAdded += added;
       totalUpdated += updated;
       totalUnchanged += unchanged;
