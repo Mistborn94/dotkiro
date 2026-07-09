@@ -64,6 +64,7 @@ async function setupFixtures() {
     "python/hooks/run-pytest.kiro.hook": '{"name":"Run Pytest","version":"1.0.0","when":{"type":"fileEdited","patterns":["*.py"]},"then":{"type":"runCommand","command":"pytest"}}',
     "python/hooks/run-pytest.json": '{"version":"v1","hooks":[{"name":"Run Pytest","trigger":"PostFileSave","description":"Runs pytest when a Python file is saved","matcher":"\\\\\\\\.py$","action":{"type":"command","command":"pytest"}}]}',
     "cdk/steering/construct-patterns.md": "# CDK Patterns",
+    "cdk/agents/cdk-agent.md": "---\ndescription: Infrastructure as Code (AWS CDK) development agent\ntools: [read, write, shell, web]\n---\n\nYou are an AWS CDK infrastructure-as-code specialist working in TypeScript.\n\n"
   };
 
   for (const [relPath, content] of Object.entries(files)) {
@@ -134,6 +135,7 @@ describe("init (integration)", () => {
 
     expect(await fileExists(join(projectDir, ".kiro/steering/python/python-rules.md"))).toBe(true);
     expect(await fileExists(join(projectDir, ".kiro/steering/cdk/construct-patterns.md"))).toBe(true);
+    expect(await fileExists(join(projectDir, ".kiro/agents/cdk/cdk-agent.md"))).toBe(true);
 
     const manifest = await readManifest(projectDir);
     expect(Object.keys(manifest).sort()).toEqual(["cdk", "python", "shared"]);

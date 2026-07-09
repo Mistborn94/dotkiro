@@ -20,6 +20,7 @@ function pathsForType(type) {
     { src: `${srcPathPrefix}steering`, dest: `.kiro/steering${destPathSuffix}`, label: `Steering (${typeLabel})`, type: typeLabel, ext: [".md"] },
     { src: `${srcPathPrefix}skills`, dest: ".kiro/skills", label: `Skills (${typeLabel})`, type: typeLabel, ext: [".md"] },
     { src: `${srcPathPrefix}hooks`, dest: `.kiro/hooks`, label: `Hooks (${typeLabel})`, type: typeLabel, ext: [".kiro.hook", ".json"] },
+    { src: `${srcPathPrefix}agents`, dest: `.kiro/agents${destPathSuffix}`, label: `Custom Agents (${typeLabel})`, type: typeLabel, ext: [".md"] },
   ];
 }
 
