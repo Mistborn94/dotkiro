@@ -50,7 +50,7 @@ async function setupFixtures() {
   await mkdir(projectDir, { recursive: true });
 
   // init a normal repo, add files, then clone --bare
-  await exec("git", ["init", workTree]);
+  await exec("git", ["init", "-b", "main", workTree]);
   await exec("git", ["-C", workTree, "config", "user.email", "test@test.com"]);
   await exec("git", ["-C", workTree, "config", "user.name", "Test"]);
 
