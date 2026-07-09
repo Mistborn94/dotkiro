@@ -44,7 +44,7 @@ async function filesEqual(a, b) {
   }
 }
 
-export async function copyDir(srcDir, destDir, label, ext = ".md") {
+export async function copyDir(srcDir, destDir, label, ext = [".md"]) {
   let entries;
   try {
     entries = await readdir(srcDir, { withFileTypes: true });
@@ -69,7 +69,7 @@ export async function copyDir(srcDir, destDir, label, ext = ".md") {
       updated += sub.updated;
       unchanged += sub.unchanged;
       files.push(...sub.files);
-    } else if (entry.isFile() && entry.name.endsWith(ext)) {
+    } else if (entry.isFile() && ext.some((e) => entry.name.endsWith(e))) {
       const equal = await filesEqual(srcPath, destPath);
       if (equal) {
         unchanged++;

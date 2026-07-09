@@ -142,7 +142,7 @@ describe("copyDir", () => {
     await writeTestFile(src, "lint.kiro.hook", '{"name":"Lint"}');
     await writeTestFile(src, "readme.md", "# Readme");
 
-    const result = await copyDir(src, dest, "test", ".kiro.hook");
+    const result = await copyDir(src, dest, "test", [".kiro.hook"]);
     expect(result.added).toBe(1);
     expect(result.files).toHaveLength(1);
     expect(result.files[0]).toContain("lint.kiro.hook");

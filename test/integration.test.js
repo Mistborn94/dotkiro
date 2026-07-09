@@ -15,7 +15,6 @@ import { readManifest, MANIFEST_PATH } from "../src/init.js";
 import { init } from "../src/init.js";
 import { add } from "../src/add.js";
 import { remove } from "../src/remove.js";
-import { status } from "../src/status.js";
 import { loadConfig } from "../src/config.js";
 
 const exec = promisify(execFile);
@@ -37,6 +36,7 @@ async function fileExists(p) {
  *   python/steering/python-rules.md
  *   python/skills/pytest/SKILL.md
  *   python/hooks/run-pytest.kiro.hook
+ *   python/hooks/run-pytest.json
  *   cdk/steering/construct-patterns.md
  */
 async function setupFixtures() {
@@ -62,6 +62,7 @@ async function setupFixtures() {
     "python/steering/python-rules.md": "# Python Rules\nUse type hints.",
     "python/skills/pytest/SKILL.md": "# Pytest Skill",
     "python/hooks/run-pytest.kiro.hook": '{"name":"Run Pytest","version":"1.0.0","when":{"type":"fileEdited","patterns":["*.py"]},"then":{"type":"runCommand","command":"pytest"}}',
+    "python/hooks/run-pytest.json": '{"version":"v1","hooks":[{"name":"Run Pytest","trigger":"PostFileSave","description":"Runs pytest when a Python file is saved","matcher":"\\\\\\\\.py$","action":{"type":"command","command":"pytest"}}]}',
     "cdk/steering/construct-patterns.md": "# CDK Patterns",
   };
 
@@ -429,9 +430,10 @@ describe("hooks (integration)", () => {
     await init(config);
 
     expect(await fileExists(join(projectDir, ".kiro/hooks/lint-on-save.kiro.hook"))).toBe(true);
-    expect(await fileExists(join(projectDir, ".kiro/hooks/python/run-pytest.kiro.hook"))).toBe(true);
+    expect(await fileExists(join(projectDir, ".kiro/hooks/run-pytest.kiro.hook"))).toBe(true);
+    expect(await fileExists(join(projectDir, ".kiro/hooks/run-pytest.json"))).toBe(true);
 
-    const content = await readFile(join(projectDir, ".kiro/hooks/python/run-pytest.kiro.hook"), "utf-8");
+    const content = await readFile(join(projectDir, ".kiro/hooks/run-pytest.kiro.hook"), "utf-8");
     expect(content).toContain("Run Pytest");
   });
 
@@ -461,18 +463,19 @@ describe("hooks (integration)", () => {
     expect(sharedHookAfter).toBe(sharedHookBefore);
 
     // type hook added
-    expect(await fileExists(join(projectDir, ".kiro/hooks/python/run-pytest.kiro.hook"))).toBe(true);
+    expect(await fileExists(join(projectDir, ".kiro/hooks/run-pytest.kiro.hook"))).toBe(true);
+    expect(await fileExists(join(projectDir, ".kiro/hooks/run-pytest.json"))).toBe(true);
   });
 
   it("remove cleans up type-specific hooks", async () => {
     const config = await loadConfig({ repo: bareRepo, branch: "main" }, ["python"]);
     await init(config);
 
-    expect(await fileExists(join(projectDir, ".kiro/hooks/python/run-pytest.kiro.hook"))).toBe(true);
+    expect(await fileExists(join(projectDir, ".kiro/hooks/run-pytest.json"))).toBe(true);
 
     await remove(["python"]);
 
-    expect(await fileExists(join(projectDir, ".kiro/hooks/python/run-pytest.kiro.hook"))).toBe(false);
+    expect(await fileExists(join(projectDir, ".kiro/hooks/run-pytest.kiro.hook"))).toBe(false);
     // shared hook still there
     expect(await fileExists(join(projectDir, ".kiro/hooks/lint-on-save.kiro.hook"))).toBe(true);
   });
@@ -484,6 +487,6 @@ describe("hooks (integration)", () => {
     await remove([]);
 
     expect(await fileExists(join(projectDir, ".kiro/hooks/lint-on-save.kiro.hook"))).toBe(false);
-    expect(await fileExists(join(projectDir, ".kiro/hooks/python/run-pytest.kiro.hook"))).toBe(false);
+    expect(await fileExists(join(projectDir, ".kiro/hooks/run-pytest.kiro.hook"))).toBe(false);
   });
 });

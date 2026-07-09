@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fc from "fast-check";
 import { mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
@@ -14,9 +14,9 @@ describe("buildPaths", () => {
   it("returns shared steering + skills + hooks when no types given", () => {
     const paths = buildPaths([]);
     expect(paths).toEqual([
-      { src: "steering", dest: ".kiro/steering", label: "Steering (shared)", type: "shared", ext: ".md" },
-      { src: "skills", dest: ".kiro/skills", label: "Skills (shared)", type: "shared", ext: ".md" },
-      { src: "hooks", dest: ".kiro/hooks", label: "Hooks (shared)", type: "shared", ext: ".kiro.hook" },
+      { src: "steering", dest: ".kiro/steering", label: "Steering (shared)", type: "shared", ext: [".md"] },
+      { src: "skills", dest: ".kiro/skills", label: "Skills (shared)", type: "shared", ext: [".md"] },
+      { src: "hooks", dest: ".kiro/hooks", label: "Hooks (shared)", type: "shared", ext: [".kiro.hook", ".json"] },
     ]);
   });
 
@@ -28,21 +28,21 @@ describe("buildPaths", () => {
       dest: ".kiro/steering/python",
       label: "Steering (python)",
       type: "python",
-      ext: ".md",
+      ext: [".md"],
     });
     expect(paths[4]).toEqual({
       src: "python/skills",
       dest: ".kiro/skills",
       label: "Skills (python)",
       type: "python",
-      ext: ".md",
+      ext: [".md"],
     });
     expect(paths[5]).toEqual({
       src: "python/hooks",
-      dest: ".kiro/hooks/python",
+      dest: ".kiro/hooks",
       label: "Hooks (python)",
       type: "python",
-      ext: ".kiro.hook",
+      ext: [".kiro.hook", ".json"],
     });
   });
 
@@ -122,7 +122,7 @@ describe("buildPaths", () => {
     );
   });
 
-  it("type-specific hooks dest always nests under .kiro/hooks/<type>", () => {
+  it("type-specific hooks dest doesn't nest under .kiro/hooks/<type>", () => {
     fc.assert(
       fc.property(
         fc.array(
@@ -133,8 +133,8 @@ describe("buildPaths", () => {
           const paths = buildPaths(types);
           for (const p of paths) {
             if (p.type !== "shared" && p.src.endsWith("/hooks")) {
-              expect(p.dest).toBe(`.kiro/hooks/${p.type}`);
-              expect(p.ext).toBe(".kiro.hook");
+              expect(p.dest).toBe(`.kiro/hooks`);
+              expect(p.ext).toEqual([".kiro.hook", ".json"]);
             }
           }
         }
